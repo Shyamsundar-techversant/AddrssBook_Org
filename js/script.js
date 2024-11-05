@@ -120,9 +120,7 @@ $(document).ready(function(){
 	$('.edit-cont-details').on('click',function(){
 		document.getElementById('add-cont').style.display="none";
 		document.getElementById('edit-cont').style.display="block";
-		contactId=$(this).data('id');
-		console.log(contactId);
-		let fileName;	
+		contactId=$(this).data('id');	
 		$.ajax({
 			url:'Components/main.cfc?method=getContactById',
 			type:'POST',
@@ -151,52 +149,41 @@ $(document).ready(function(){
 	});
 
 	$('#edit-cont').on('click',function(event){	
-		let fileName=contImg.prop('files')[0]?.name;
-			if(fileName){
-				console.log("file",fileName);
-			}
-			else{
-				console.log("No file selected");
-			}
-			console.log("id",contactId);	
-			console.log("title",contTitle.val());
-			console.log("firstname",contFirstname.val());
-			console.log("lastname",contLastname.val());
-			console.log("gender",contGender.val());
-			console.log("dob",contDob.val());
-			console.log("imagePath",fileName);
-			console.log("email",contEmail.val());
-			console.log("phone",contPhone.val());
-			console.log("address",contAddress.val());
-			console.log("street",contStreet.val());
-			console.log("pincode",contPincode.val());
+		event.preventDefault();
+		var fileInput = $('#upload-img')[0];
+		var file=fileInput.files[0];
+		var formData = new FormData();
+		formData.append('title', contTitle.val());
+		formData.append('firstname', contFirstname.val());
+		formData.append('lastname', contLastname.val());
+		formData.append('gender', contGender.val());
+		formData.append('dob', contDob.val());
+		formData.append('file', file);
+		formData.append('email', contEmail.val());
+		formData.append('phone', contPhone.val());
+		formData.append('address', contAddress.val());
+		formData.append('street', contStreet.val());
+		formData.append('pincode', contPincode.val());
+		formData.append('id',contactId);
 		$.ajax({
 			url:'Components/main.cfc?method=validateContactForm',
 			type:'POST',
-			data:{
-				contId:contactId,
-				title:contTitle.val(),
-				firstname:contFirstname.val(),
-				lastname:contLastname.val(),
-				gender:contGender.val(),
-				dob:contDob.val(),
-				uploadImg:fileName,
-				email:contEmail.val(),
-				phone:contPhone.val(),
-				address:contAddress.val(),
-				street:contStreet.val(),
-				pincode:contPincode.val()
-			},
-			success:function(response){					
-				if(!response){
-					event.preventDefault();
+			data:formData,
+			processData:false,
+			contentType:false,
+			success:function(response){
+				let data = JSON.parse(response);
+				console.log(data);	
+				if(data.length === 0){
+					$('#contacts-form').closest('.modal').modal('hide');
+					location.reload();
 				}
 				else{
-					alert("Contact Updated Successfully");
+					addError(data);
 				}
+				
 			},
 			error:function(){
-				event.preventDefault();
 				console.log("Request Failed");
 			}
 		});
