@@ -1,23 +1,8 @@
 <cfif NOT structKeyExists(session,"username") OR NOT structKeyExists(session,"userId")>
 	<cflocation url="logIn.cfm" addtoken="false">	
 </cfif>
- <!---<cfif structKeyExists(form,"submit")>
-	<cfset variables.addValidationResult=application.dbObj.validateContactForm(
-										form.title,
-										form.firstname,
-										form.lastname,
-										form.gender,
-										form.dob,
-										form.uploadImg,
-										form.email,
-										form.phone,
-										form.address,
-										form.street,
-										form.pincode
-									)
-	> 
-</cfif>--->
 	<cfset variables.getContacts=application.dbObj.getContacts()>
+	<cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
 <html>
 	<head>
@@ -30,7 +15,7 @@
 		referrerpolicy="no-referrer"/>	
 	</head>
 	<body>
-		<section class="reg-page">
+		<section class="reg-page  no-print">
 			<header class="header">
 				<div class="container">
 					<nav class="navigation">
@@ -51,27 +36,14 @@
 		</section>
 		<section class="user-details">
 			<div class="container">
-				<div class="user-options">
+				<div class="user-options  no-print">
 					<div class="options">
-						<button>A</button>
-						<button>B</button>
-						<button>C</button>
+						<button media="print" onclick="window.print();" >PRINT</button>
+						<button onclick="window.location.href='pdf.cfm';">PDF</button>
+						<button onclick="window.location.href='spreadSheet.cfm';">EXCEL</button>
 					</div>
 				</div>
 			</div>
-
-			<!---<div class="error-container">
-				<div class="error-content">
-					<cfif structKeyExists(variables,"addValidationResult")>
-						<cfoutput>
-							<cfloop array="#variables.addValidationResult#" index="error">
-								<span class="validation-error">#error#</span><br>
-							</cfloop>
-						</cfoutput>
-					</cfif>	
-				</div>
-			</div>--->
-
 			<div class="container">
 				
 					<div class="users">
@@ -82,7 +54,7 @@
 							<cfoutput><h4>#session.username#</h4></cfoutput>
 							<button type="button" class="btn btn-primary user-creation" data-bs-toggle="modal" 
 								data-bs-target="#staticBackdrop" id="create-cont">
- 								 CREATECONTACT
+ 								 CREATE CONTACT
 							</button>
 						</div>
 						<div class="user-profiles">
@@ -92,9 +64,9 @@
 										<th scope="col">Profile Photo</th>																<th scope="col">Name</th>
 										<th scope="col">Email Id</th>
 										<th scope="col">Phone Number</th>
-										<th scope="col">VIEW</th>
-										<th scope="col">EDIT</th>
-										<th scope="col">DELETE</th>
+										<th scope="col" class="no-print">VIEW</th>
+										<th scope="col" class="no-print">EDIT</th>
+										<th scope="col" class="no-print">DELETE</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -104,12 +76,13 @@
 												<tr>
 		
 													<td>
-														<img src=""  alt="logo"																				width="30" height="30">
+														<img src="./Uploads/#getContacts.IMAGEPATH#"  																alt="logo" width="30" height="30"
+														>
 													</td>
  													<td>#getContacts.firstName &getContacts.lastName#</td>
 													<td>#getContacts.email#</td>
 													<td>#getContacts.phone#</td>
-													<td>
+													<td class="no-print">
 														<button type="button" 
 															class="btn btn-primary contact-view-btn" 
 															data-bs-toggle="modal"
@@ -119,7 +92,7 @@
 															VIEW
 														</button>
 													</td>
-													<td>
+													<td class="no-print">
 														
 															<button class="edit-cont-details"
 																data-bs-toggle="modal"
@@ -130,7 +103,7 @@
 															</button>
 														
 													</td>
-													<td>
+													<td class="no-print">
 														<button class="delete-contact-details"
 															data-bs-toggle="modal"
 															data-bs-target="##deleteContact"
@@ -151,7 +124,7 @@
 			</div>
 		</section>
 
-		<!-- Modal ADD/EDIT -->
+		<!--- Modal ADD/EDIT --->
 		<div	class="modal" 
 			id="staticBackdrop" 
 		>
@@ -275,7 +248,7 @@
 			</div>
 		</div>
 		
-		<!-- Modal view -->
+		<!--- Modal view --->
 		<div	class="modal" 
 			id="viewContact" 
 		>

@@ -168,7 +168,7 @@
 	</cffunction>
 
 	<!--- VALIDATE CONTACT FORM--->
-	<cffunction name="validateContactForm" access="remote" returntype="any" returnformat="JSON">
+	<cffunction name="validateContactForm" access="remote" returntype="array" returnformat="JSON">
 		<cfargument name="title" type="string" required="true">
 		<cfargument name="firstname" type="string" required="true">
 		<cfargument name="lastname" type="string" required="true">
@@ -282,7 +282,7 @@
 		<cfelseif NOT reFindNoCase("^[1-9][0-9]{5}$",arguments.pincode)>
 			<cfset arrayAppend(local.errors,"*Enter a valid pincode")>
 		</cfif> 
-		<!--- ADD FUNCTION CALL--->
+		<!--- ADD EDIT FUNCTION CALL--->
 		<cfif arrayLen(local.errors) EQ 0>
 			<cfif NOT structKeyExists(arguments,"id")>
 				<cfset local.addCont=addEditContact(
@@ -299,8 +299,24 @@
 							arguments.pincode							
 						)
 				>
-				<cfreturn local.errors>
+			<cfelse>
+				<cfset local.editCont=addEditContact(
+							arguments.title,
+							arguments.firstname,
+							arguments.lastname,
+							arguments.gender,
+							arguments.dob,
+							local.imagePath,
+							arguments.email,
+							arguments.phone,
+							arguments.address,
+							arguments.street,
+							arguments.pincode,
+							arguments.id							
+							)
+				>	
 			</cfif>
+				<cfreturn local.errors>
 		<cfelse>	
 			<cfreturn local.errors>
 		</cfif> 	
@@ -320,7 +336,6 @@
 		<cfargument name="street" type="string" required="true">
 		<cfargument name="pincode" type="string" required="true">
 		<cfargument name="id" type="string" required="false">	
-	
 		<cfset local.titleId= int(arguments.title)>
 		<cfset local.genderId=int(arguments.gender)>	
 		<cfset local.pincode = int(arguments.pincode)>
@@ -359,7 +374,7 @@
 					)
 				</cfquery>
 			<cfelse>		
-				<cfquery name="editCont" datasource="coldfusion">
+				<cfquery name="local.editCont" datasource="coldfusion">
 					UPDATE contacts
 					SET 
 						userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">,
@@ -368,12 +383,12 @@
 						lastName=<cfqueryparam value="#arguments.lastname#" cfsqltype="cf_sql_varchar">,
 						genderId=<cfqueryparam value="#local.genderId#" cfsqltype="cf_sql_varchar">,
 						dob=<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_varchar">,
-						imagePath=<cfqueryparam value="#arguments.imagePath#" cfsqltype="cf_sql_varchar">,
+						imagePath=<cfqueryparam value="#arguments.uploadImg#" cfsqltype="cf_sql_varchar">,
 						address=<cfqueryparam value="#arguments.address#" cfsqltype="cf_sql_varchar">,
 						street=<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
 						pincode=<cfqueryparam value="#local.pincode#" cfsqltype="cf_sql_integer">,
-						email=<cfqueryparam value="arguments.email" cfsqltype="cf_sql_varchar">,
-						phone=<cfqueryparam value="local.phone" cfsqltype="cf_sql_bigint">
+						email=<cfqueryparam value="#arguments.email#" cfsqltype="cf_sql_varchar">,
+						phone=<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">
 					WHERE
 						id=<cfqueryparam value="#arguments.id#" cfsqltype="cf_sql_integer">
 				</cfquery>
@@ -389,21 +404,27 @@
 		<cftry>
 			<cfquery name="local.allContacts" datasource="coldfusion">
 				SELECT 
-					id,
-					userId,
-					titleId,
-					firstName,
-					lastName,
-                        		genderId,
-                        		dob,
-                        		imagePath,
-                        		address,
-					street,
-					pincode,
-					email,
-					phone
+					c.id,
+					c.userId,
+					c.titleId,
+					c.firstName,
+					c.lastName,
+                        		c.genderId,
+                        		c.dob,
+                        		c.imagePath,
+                        		c.address,
+					c.street,
+					c.pincode,
+					c.email,
+					c.phone,
+					t.titles,
+					g.gender_values
 				FROM 
-					contacts
+					contacts c
+				LEFT JOIN
+					title t ON c.titleId=t.id
+				LEFT JOIN 	
+					gender g ON c.genderId=g.id
 			</cfquery>
 		<cfcatch>
 			<cfdump var="#cfcatch#">
@@ -452,57 +473,6 @@
 		</cftry>
 	</cffunction>
 
-	<!--- EDIT CONTACT --->
-	<cffunction name="editContact" access="remote" returntype="boolean">
-		<cfargument name="id" type="integer" required="true">
-		<cfargument name="title" type="string" required="true">
-		<cfargument name="firstname" type="string" required="true">
-		<cfargument name="lastname" type="string" required="true">
-		<cfargument name="gender" type="string" required="true">
-		<cfargument name="dob" type="string" required="true">
-		<cfargument name="uploadImg" type="string" required="true">
-		<cfargument name="email" type="string" required="true">
-		<cfargument name="phone" type="string" required="true">
-		<cfargument name="address" type="string" required="true">
-		<cfargument name="street" type="string" required="true">
-		<cfargument name="pincode" type="string" required="true">		
-		<cfset local.titleId= int(arguments.title)>
-		<cfset local.genderId=int(arguments.gender)>	
-		<cfset local.pincode = int(arguments.pincode)>
-		<cfset local.phone = int(arguments.phone)>
-		
-		<cftry>
-			<cfquery name="editCont" datasource="coldfusion">
-				UPDATE contacts
-				SET 
-					userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">,
-					titleId=<cfqueryparam value="#local.titleId#" cfsqltype="cf_sql_integer">,
-					firstName=<cfqueryparam value="#arguments.firstname#" cfsqltype="cf_sql_varchar">,
-					lastName=<cfqueryparam value="#arguments.lastname#" cfsqltype="cf_sql_varchar">,
-					genderId=<cfqueryparam value="#local.genderId#" cfsqltype="cf_sql_varchar">,
-					dob=<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_varchar">,
-					imagePath=<cfqueryparam value="#arguments.imagePath#" cfsqltype="cf_sql_varchar">,
-					address=<cfqueryparam value="#arguments.address#" cfsqltype="cf_sql_varchar">,
-					street=<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
-					pincode=<cfqueryparam value="#local.pincode#" cfsqltype="cf_sql_integer">,
-					email=<cfqueryparam value="arguments.email" cfsqltype="cf_sql_varchar">,
-					phone=<cfqueryparam value="local.phone" cfsqltype="cf_sql_bigint">
-				WHERE
-					id=<cfqueryparam value="#arguments.id#" cfsqltype="cf_sql_integer">
-			</cfquery>
-			<cfif editCont.recordCount EQ 1>
-				<cfset local.response=true>
-			<cfelse>
-				<cfset local.response=false>
-			</cfif>
-		<cfcatch>
-			<cfdump var="#cfcatch#">
-		</cfcatch>
-
-		</cftry>	
-
-	</cffunction>
-
 	<!--- DELETE CONTACT --->
 
 	<cffunction name="deleteCont" access="remote" returnformat="JSON">
@@ -532,6 +502,12 @@
 		<cffile action="upload" fileField="file" destination="#application.imageSavePath#">
 		<cfdump var="#cffile#">
 	</cffunction>
+
+	<cffunction name="encryptId" access="public" returntype="any">
+		
+
+	</cffunction>
+
 </cfcomponent>
 
 

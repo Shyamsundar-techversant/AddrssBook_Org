@@ -36,7 +36,7 @@ $(document).ready(function(){
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
-		var formData = new FormData();
+		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
 		formData.append('lastname', contLastname.val());
@@ -152,7 +152,7 @@ $(document).ready(function(){
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
-		var formData = new FormData();
+		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
 		formData.append('lastname', contLastname.val());
@@ -165,6 +165,7 @@ $(document).ready(function(){
 		formData.append('street', contStreet.val());
 		formData.append('pincode', contPincode.val());
 		formData.append('id',contactId);
+		console.log(formData);
 		$.ajax({
 			url:'Components/main.cfc?method=validateContactForm',
 			type:'POST',
@@ -192,10 +193,12 @@ $(document).ready(function(){
 
 	//DELETE CONTACT
     	$('.delete-contact-details').on('click', function() {
+		
 		// Get the contact ID from data-id attribute
 		contactId = $(this).data('id');
 	});
 	$('#delete-cont').on('click',function(){
+		$('.modal-backdrop').show();
 		$.ajax({
 			url:'Components/main.cfc?method=deleteCont',
 			type:'POST',
@@ -207,6 +210,7 @@ $(document).ready(function(){
 				if( data === "Success"){					
 					$('button.delete-contact-details[data-id="' + contactId + '"]').closest('tr').remove();
 					alert("contact deleted successfully");
+					$('.modal-backdrop').hide();
 				}
 				else{
 					console.log("error;;");
@@ -217,8 +221,7 @@ $(document).ready(function(){
 				console.log("Request failed");
 			}
 		});
-		$('#deleteContact').hide();
-		$('.modal-backdrop').hide();
-	})	
+
+	});	
 });
 
