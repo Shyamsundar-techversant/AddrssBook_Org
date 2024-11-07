@@ -192,13 +192,12 @@ $(document).ready(function(){
 	});
 
 	//DELETE CONTACT
-    	$('.delete-contact-details').on('click', function() {
-		
+    	$('.delete-contact-details').on('click', function() {		
 		// Get the contact ID from data-id attribute
 		contactId = $(this).data('id');
+		$('.modal-backdrop').show();
 	});
 	$('#delete-cont').on('click',function(){
-		$('.modal-backdrop').show();
 		$.ajax({
 			url:'Components/main.cfc?method=deleteCont',
 			type:'POST',
@@ -210,7 +209,7 @@ $(document).ready(function(){
 				if( data === "Success"){					
 					$('button.delete-contact-details[data-id="' + contactId + '"]').closest('tr').remove();
 					alert("contact deleted successfully");
-					$('.modal-backdrop').hide();
+					
 				}
 				else{
 					console.log("error;;");
@@ -221,6 +220,9 @@ $(document).ready(function(){
 				console.log("Request failed");
 			}
 		});
+		
+		$('#deleteContact').hide();
+		$('.modal-backdrop').hide();
 
 	});	
 });

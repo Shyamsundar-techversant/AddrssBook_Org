@@ -180,7 +180,7 @@
 		<cfargument name="address" type="string" required="true">
 		<cfargument name="street" type="string" required="true">
 		<cfargument name="pincode" type="string" required="true">
-		<cfargument name="id" type="numeric" required="false">
+		<cfargument name="id" type="string" required="false">
 		<cfset local.errors=[]>	
 
 		<!--- Title --->
@@ -373,7 +373,8 @@
 						<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">
 					)
 				</cfquery>
-			<cfelse>		
+			<cfelse>	
+				<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>	
 				<cfquery name="local.editCont" datasource="coldfusion">
 					UPDATE contacts
 					SET 
@@ -390,7 +391,7 @@
 						email=<cfqueryparam value="#arguments.email#" cfsqltype="cf_sql_varchar">,
 						phone=<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">
 					WHERE
-						id=<cfqueryparam value="#arguments.id#" cfsqltype="cf_sql_integer">
+						id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">
 				</cfquery>
 			</cfif>
  		<cfcatch>
@@ -435,7 +436,8 @@
 
 	<!--- GET CONTACT BY ID --->
 	<cffunction name="getContactById" access="remote" returntype="any" returnformat="JSON">
-		<cfargument name="id" type="integer" required="true">
+		<cfargument name="id" type="string" required="true">
+		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
 		<cftry>
 			<cfquery name="local.getCont" datasource="coldfusion">
 				SELECT 
@@ -461,7 +463,7 @@
 				LEFT JOIN
 					gender g ON c.genderId=g.id
 				WHERE 
-					c.id=<cfqueryparam value=#arguments.id# cfsqltype="cf_sql_integer">				
+					c.id=<cfqueryparam value=#local.decryptedId# cfsqltype="cf_sql_integer">				
 			</cfquery>
 			<cfset local.response=#serializeJSON(local.getCont)#>
 			<cfreturn local.response>
@@ -476,14 +478,15 @@
 	<!--- DELETE CONTACT --->
 
 	<cffunction name="deleteCont" access="remote" returnformat="JSON">
-		<cfargument name="id" type="integer" required="true">
+		<cfargument name="id" type="string" required="true">
+		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
 		<cfset local.result="">
 		<cftry>
 			<cfquery datasource="coldfusion" result="delResult">
 				DELETE	FROM 
 					contacts
 				WHERE
-					id=<cfqueryparam value="#arguments.id#" cfsqltype="cf_sql_integer">			
+					id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">			
 			</cfquery>
 			<cfif delResult.recordCount GT 0>
 				<cfset local.result="Success">			

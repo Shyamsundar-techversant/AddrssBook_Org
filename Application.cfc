@@ -12,5 +12,9 @@
 		<cfif structKeyExists(url,"reload") AND url.reload EQ 1>
             		<cfset onApplicationStart()>
         	</cfif>
+		<cfset local.pages = ["signup.cfm","logIn.cfm"]>
+        	<cfif NOT structKeyExists(session,"username") AND NOT arrayFindNoCase(local.pages, ListLast(CGI.SCRIPT_NAME,'/'))>
+		    <cflocation url="login.cfm" addToken="no">
+	    	</cfif>
 	</cffunction>
 </cfcomponent>

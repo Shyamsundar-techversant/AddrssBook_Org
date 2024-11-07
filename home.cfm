@@ -73,6 +73,11 @@
 									<cfif structKeyExists(variables,"getContacts")>
 										<cfoutput>
 											<cfloop query="getContacts">
+												<cfset encryptedId = encrypt(
+																	getContacts.id, 																		application.encryptionKey, 																	"AES", 
+																	"Hex"
+																)
+												>
 												<tr>
 		
 													<td>
@@ -87,7 +92,7 @@
 															class="btn btn-primary contact-view-btn" 
 															data-bs-toggle="modal"
 															data-bs-target="##viewContact"
-															data-id="#getContacts.id#"
+															data-id="#encryptedId#"
 														>
 															VIEW
 														</button>
@@ -97,7 +102,7 @@
 															<button class="edit-cont-details"
 																data-bs-toggle="modal"
 																data-bs-target="##staticBackdrop"
-																data-id="#getContacts.id#"
+																data-id="#encryptedId#"
 															>
 																EDIT
 															</button>
@@ -107,7 +112,7 @@
 														<button class="delete-contact-details"
 															data-bs-toggle="modal"
 															data-bs-target="##deleteContact"
-															data-id="#getContacts.id#"
+															data-id="#encryptedId#"
 														>
 															Delete
 														</button>
