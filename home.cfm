@@ -1,8 +1,5 @@
-<cfif NOT structKeyExists(session,"username") OR NOT structKeyExists(session,"userId")>
-	<cflocation url="logIn.cfm" addtoken="false">	
-</cfif>
-	<cfset variables.getContacts=application.dbObj.getContacts()>
-	<cfset session.allContacts=variables.getContacts>
+<cfset variables.getContacts=application.dbObj.getContacts()>
+<cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
 <html>
 	<head>
@@ -221,6 +218,19 @@
 											<div class="col">
 												<label for="pincode" class="form-label">Pincode</label>
 												<input type="text" class="form-control" id="pincode" name="pincode" 												required>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<div class="col">
+												<label for="hobby" class="form-label">Hobbies</label>
+												<cfset hobbyValues=application.dbObj.getHobbies()>
+												<select name="hobby" class="form-select" id="hobby" multiple required>
+													<cfoutput query="hobbyValues">
+														<option value="#hobbyValues.id#">
+															#hobbyValues.user_hobbies#
+														</option>
+													</cfoutput>
+												</select>
 											</div>
 										</div>
 										<div class="row">

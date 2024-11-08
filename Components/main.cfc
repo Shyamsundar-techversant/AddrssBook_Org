@@ -167,6 +167,28 @@
 		</cftry>
 	</cffunction>
 
+	<!--- GET HOBBIES --->
+	<cffunction name="getHobbies" access="public" returntype="query">
+		<cftry>
+			<cfquery name="local.hobbyValues" datasource="coldfusion">
+				SELECT 
+					id,
+					user_hobbies
+				FROM 
+					hobbies
+			</cfquery>
+			<cfif local.hobbyValues.recordCount EQ 5>
+				<cfreturn local.hobbyValues>
+			</cfif>
+		<cfcatch>
+	
+			<cfset local.result="#cfcatch.message#">
+			<cfreturn local.result>
+		</cfcatch>
+		</cftry>
+	</cffunction>
+
+
 	<!--- VALIDATE CONTACT FORM--->
 	<cffunction name="validateContactForm" access="remote" returntype="array" returnformat="JSON">
 		<cfargument name="title" type="string" required="true">

@@ -13,7 +13,9 @@ $(document).ready(function(){
 		contPhone=$('#phone'),
 		contAddress=$('#address'),
 		contPincode=$('#pincode'),
-		contStreet=$('#street');
+		contStreet=$('#street'),
+		contHobby=$('#hobby');
+		
 	
 
 
@@ -36,6 +38,9 @@ $(document).ready(function(){
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
+				
+
+
 		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
