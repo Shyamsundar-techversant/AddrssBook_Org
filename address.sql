@@ -69,3 +69,37 @@ CREATE TABLE contacts(
 SELECT * FROM contacts ;
 
 drop table contacts;
+
+CREATE TABLE hobbies(
+id INT PRIMARY KEY,
+hobby_name VARCHAR(100)
+);
+INSERT INTO hobbies
+values(
+1,"READING"
+),
+(
+2,"WRITING"
+),
+(
+3,"TRAVELLING"
+),
+(
+4,"SPORTS"
+),
+(
+5,"PHOTOGRAPHY"
+);
+
+select * from hobbies;
+
+CREATE TABLE contact_hobbies(
+contact_id INT,
+hobby_id INT,
+FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE,
+FOREIGN KEY (hobby_id) REFERENCES hobbies(id) ON DELETE CASCADE,
+PRIMARY KEY (contact_id,hobby_id)
+);
+
+SELECT * FROM contact_hobbies;
+drop table contact_hobbies;

@@ -26,7 +26,7 @@ $(document).ready(function(){
 		pincode=$('#contact-pincode'),
 		email=$('#contact-email'),
 		phone=$('#contact-phone');
-
+	
 	//ADD
 	$('#create-cont').on('click',function(){
 		$('#contacts-form').trigger('reset');
@@ -38,9 +38,7 @@ $(document).ready(function(){
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
-				
-
-
+		
 		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
@@ -53,6 +51,7 @@ $(document).ready(function(){
 		formData.append('address', contAddress.val());
 		formData.append('street', contStreet.val());
 		formData.append('pincode', contPincode.val());
+		formData.append('hobbies',contHobby.val());
 		$.ajax({
 			url:'Components/main.cfc?method=validateContactForm',
 			type:'POST',
@@ -60,6 +59,7 @@ $(document).ready(function(){
 			processData:false,
 			contentType:false,
 			success:function(response){
+				console.log(response);
 				let data = JSON.parse(response);
 				console.log(data);	
 				if(data.length === 0){
@@ -126,7 +126,7 @@ $(document).ready(function(){
 		document.getElementById('add-cont').style.display="none";
 		document.getElementById('edit-cont').style.display="block";
 		contactId=$(this).data('id');	
-		$.ajax({
+		/* $.ajax({
 			url:'Components/main.cfc?method=getContactById',
 			type:'POST',
 			data:{
@@ -150,7 +150,7 @@ $(document).ready(function(){
 			error:function(){
 				console.log("Request Failed");
 			}
-		});	
+		}); */
 	});
 
 	$('#edit-cont').on('click',function(event){	
@@ -169,7 +169,9 @@ $(document).ready(function(){
 		formData.append('address', contAddress.val());
 		formData.append('street', contStreet.val());
 		formData.append('pincode', contPincode.val());
+		formData.append('hobbies',contHobby.val());
 		formData.append('id',contactId);
+		
 		console.log(formData);
 		$.ajax({
 			url:'Components/main.cfc?method=validateContactForm',

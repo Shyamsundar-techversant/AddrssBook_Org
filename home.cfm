@@ -1,3 +1,5 @@
+<cfset variable.getDataById = application.dbObj.getDataById(78)>
+<cfdump var="#variable.getDataById#">
 <cfset variables.getContacts=application.dbObj.getContacts()>
 <cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
@@ -227,7 +229,7 @@
 												<select name="hobby" class="form-select" id="hobby" multiple required>
 													<cfoutput query="hobbyValues">
 														<option value="#hobbyValues.id#">
-															#hobbyValues.user_hobbies#
+															#hobbyValues.hobby_name#
 														</option>
 													</cfoutput>
 												</select>
@@ -236,10 +238,6 @@
 										<div class="row">
 											<div class="col">
 												<div class="user-form-buttons">
-													<button class="cancel-user-form user-btn" 
-													data-bs-dismiss="modal" >
-														Cancel
-													</button>
 													<button class="edit-details user-btn"  																name="edit-user" id="edit-cont">
 														Edit Contact
 													</button>
