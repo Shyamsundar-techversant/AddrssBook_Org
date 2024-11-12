@@ -228,6 +228,9 @@ a{
 }
 
 /* VIEW */
+.view-contact{
+	max-width:700px !important;
+}
 .profile-image{
 	padding:10px !important;
 	width:100px;

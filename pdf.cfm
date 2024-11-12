@@ -1,7 +1,7 @@
 	<cfset variables.fileName="contactData.pdf">
 	<cfheader name="Content-Disposition" value="attachment; filename=#variables.fileName#">
 	<cfheader name="Content-Type" value="application/pdf">
-	<cfset contactList=session.allContacts>
+	<cfset contactList=application.dbObj.getTotalData()>
 	<cfcontent type="application/pdf" reset="true">
 
 
@@ -21,6 +21,11 @@
 						<td>#contactList.FIRSTNAME# #contactList.LASTNAME#</td>
 						<td>#contactList.email#</td>
 						<td>#contactList.phone#</td>
+						<td>
+							<cfloop list="#contactList.HOBBIES#" index="hobby">
+								#hobby#,
+							</cfloop>
+						</td>
 					</tr>
 				</cfoutput>
 			</tbody>

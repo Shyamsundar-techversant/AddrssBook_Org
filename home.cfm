@@ -1,5 +1,3 @@
-<cfset variable.getDataById = application.dbObj.getDataById(78)>
-<cfdump var="#variable.getDataById#">
 <cfset variables.getContacts=application.dbObj.getContacts()>
 <cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
@@ -271,7 +269,7 @@
 						<h5 class="modal-title" id="staticBackdropLabel">CONTACT DETAILS</h5>
 						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
-					<div class="modal-body">
+					<div class="modal-body view-contact-body">
 						<div>
 							<div class="container">			
 									<div class="profile-image">
@@ -283,7 +281,8 @@
 									ADDRESS:<span id="contact-address" class="cont-info"></span><br>
 									PINCODE:<span id="contact-pincode" class="cont-info"></span><br>
 									EMAIL-ID:<span id="contact-email" class="cont-info"></span><br>
-									PHONE:<span id="contact-phone" class="cont-info"></span>
+									PHONE:<span id="contact-phone" class="cont-info"></span><br>
+									HOBBIES:<span id="user-hobbies" class="cont-info"></span>
 							</div>
 						</div>						
 

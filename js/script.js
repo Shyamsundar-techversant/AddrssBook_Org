@@ -32,6 +32,9 @@ $(document).ready(function(){
 		$('#contacts-form').trigger('reset');
 		$('#add-cont').show();
 		$('#edit-cont').hide();	
+		if($("#error-data li").length > 0){
+			$('#error-data li').remove();
+		}
 	});
 	
 	$('#add-cont').on('click',function(event){
@@ -87,7 +90,7 @@ $(document).ready(function(){
 			let li= document.createElement('li');
 			li.textContent=msg;
 			errorList.appendChild(li);
-		})
+		});
 
 	}
 
@@ -97,7 +100,7 @@ $(document).ready(function(){
 		// Get the contact ID from data-id attribute
 		contactId = $(this).data('id');
 		$.ajax({
-			url:'Components/main.cfc?method=getContactById',
+			url:'Components/main.cfc?method=getDataById',
 			type:'POST',
 			data:{
 				id:contactId
@@ -105,6 +108,8 @@ $(document).ready(function(){
 			success:function(response){
 				const data=JSON.parse(response);
 				console.log(data);
+				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_NAME")]);
+				console.log(hobbies);
 				const dataRow = data.DATA[0];
 				$('#profile-picture').attr('src',`./Uploads/${dataRow[7]}`);
 				fullName.text(`${dataRow[13]}${dataRow[3]}${dataRow[4]}`);
@@ -113,7 +118,8 @@ $(document).ready(function(){
 				address.text(`${dataRow[8]}`);
 				pincode.text(`${dataRow[10]}`);
 				email.text(`${dataRow[11]}`);
-				phone.text(`${dataRow[12]}`);		
+				phone.text(`${dataRow[12]}`);	
+				$('#user-hobbies').text(hobbies.join(","));	
 			},
 			error:function(){
 				console.log("Request Failed");
@@ -125,7 +131,40 @@ $(document).ready(function(){
 	$('.edit-cont-details').on('click',function(){
 		document.getElementById('add-cont').style.display="none";
 		document.getElementById('edit-cont').style.display="block";
+		if($("#error-data li").length > 0){
+			$('#error-data li').remove();
+		}
 		contactId=$(this).data('id');	
+		$.ajax({
+			url:'Components/main.cfc?method=getDataById',
+			type:'POST',
+			data:{
+				id:contactId
+			},
+			success:function(response){
+				const data= JSON.parse(response);
+				console.log(data);
+				const contactData=data.DATA[0];
+
+				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_NAME")]);
+
+				contTitle.val(contactData[data.COLUMNS.indexOf("TITLEID")]);
+				contFirstname.val(contactData[data.COLUMNS.indexOf("FIRSTNAME")]);
+				contLastname.val(contactData[data.COLUMNS.indexOf("LASTNAME")]);
+				contGender.val(contactData[data.COLUMNS.indexOf("GENDERID")]);
+				contDob.val(contactData[data.COLUMNS.indexOf("DOB")]);
+				contEmail.val(contactData[data.COLUMNS.indexOf("EMAIL")]);
+				contPhone.val(contactData[data.COLUMNS.indexOf("PHONE")]);
+				contAddress.val(contactData[data.COLUMNS.indexOf("ADDRESS")]);
+				contPincode.val(contactData[data.COLUMNS.indexOf("PINCODE")]);
+				contStreet.val(contactData[data.COLUMNS.indexOf("STREET")]);
+				contImg.attr("src", contactData[data.COLUMNS.indexOf("IMAGEPATH")]);			
+				contHobby.val(hobbies);	
+			},
+			error:function(){
+				console.log("Request Failed");
+			}
+		});
 		/* $.ajax({
 			url:'Components/main.cfc?method=getContactById',
 			type:'POST',

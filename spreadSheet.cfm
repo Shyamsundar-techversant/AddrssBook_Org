@@ -5,7 +5,7 @@
 	<cfset myFormat.alignV="center">
 	<cfset data={color="white",fgcolor="grey_50_percent",alignV="center"}>
 	<cfset dataHead={color="white",fgcolor="grey_50_percent",bold="true",alignV="center"}>
-	<cfset contactList=session.allContacts>
+	<cfset contactList=application.dbObj.getTotalData()>
 
 	<cfset spreadsheetSetCellValue(spreadsheetObj, "TITLE", 1, 1)>
 	<cfset spreadsheetSetCellValue(spreadsheetObj, "FIRSTNAME", 1, 2)>
@@ -17,7 +17,7 @@
 	<cfset spreadsheetSetCellValue(spreadsheetObj, "STREET",1,8)>
 	<cfset spreadsheetSetCellValue(spreadsheetObj, "ADDRESS",1,9)>
 	<cfset spreadsheetSetCellValue(spreadsheetObj, "PINCODE",1,10)>
-
+	<cfset spreadsheetSetCellValue(spreadsheetObj,"HOBBIES",1,11)>
 	<cfset SpreadsheetFormatRow (spreadsheetObj, dataHead, 1)>	
 		<cfoutput query="contactList">
 			<cfset fullName = #contactList.FIRSTNAME#& " " &#contactList.LASTNAME#>
@@ -31,6 +31,7 @@
 			<cfset spreadsheetSetCellValue(spreadsheetObj, "#contactList.STREET#",currentRow+1, 8)>
 			<cfset spreadsheetSetCellValue(spreadsheetObj, "#contactList.ADDRESS#", currentRow+1, 9)>
 			<cfset spreadsheetSetCellValue(spreadsheetObj, "#contactList.PINCODE#",currentRow+1, 10)>
+			<cfset spreadsheetSetCellValue(spreadsheetObj,"#contactList.HOBBIES#",currentRow+1,11)>
 			<cfset SpreadsheetSetRowHeight(spreadsheetObj,currentRow+1,20)>
 		</cfoutput>
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,1,25)>
@@ -43,9 +44,10 @@
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,8,35)>
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,9,25)>
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,10,20)>
-	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,11,20)>
+	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,11,50)>
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,12,20)>
 	<cfset SpreadSheetSetColumnWidth(spreadsheetobj,13,20)>
+		
 
 	<cfset binary = SpreadsheetReadBinary(spreadsheetObj)>
 

@@ -508,7 +508,7 @@
 			<cfreturn local.allContacts>
 	</cffunction>
 
-	<!--- GET CONTACT BY ID --->
+	<!--- GET CONTACT BY ID 
 	<cffunction name="getContactById" access="remote" returntype="any" returnformat="JSON">
 		<cfargument name="id" type="string" required="true">
 		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
@@ -543,11 +543,10 @@
 			<cfreturn local.response>
 		<cfcatch>
 			<cfset local.errResponse ={error=true}>
-			<cfdump var="#cfcatch#">
-			
+			<cfdump var="#cfcatch#">			
 		</cfcatch>
 		</cftry>
-	</cffunction>
+	</cffunction>--->
 
 	<!--- DELETE CONTACT --->
 
@@ -580,8 +579,9 @@
 		<cfdump var="#cffile#">
 	</cffunction>
 
-	<cffunction name="getDataById" access="public" returntype="any">	
+	<cffunction name="getDataById" access="remote" returntype="any" returnformat="JSON">	
 		<cfargument name="id" type="string" required="true">
+		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
 		<cftry>
 			<cfquery name="local.getCont" datasource="coldfusion">
 				SELECT 
@@ -612,9 +612,10 @@
 				LEFT JOIN 
 					hobbies h ON ch.hobby_id=h.id
 				WHERE 
-					c.id=<cfqueryparam value=#id# cfsqltype="cf_sql_integer">				
+					c.id=<cfqueryparam value=#decryptedId#  cfsqltype="cf_sql_integer">				
 			</cfquery>
-			<cfreturn local.getCont>
+			<cfset local.response=#serializeJSON(local.getCont)#>
+			<cfreturn local.response>
 		<cfcatch>
 			<cfdump var="#cfcatch#">
 		</cfcatch>
@@ -622,6 +623,46 @@
 
 	</cffunction>
 
+	<cffunction name="getTotalData" access="public" returntype="any">
+		<cftry>
+			<cfquery name="local.totalData" datasource="coldfusion">
+				SELECT 
+					c.id,
+					c.userId,
+					c.titleId,
+					c.firstName,
+					c.lastName,
+                        		c.genderId,
+                        		c.dob,
+                        		c.imagePath,
+                        		c.address,
+					c.street,
+					c.pincode,
+					c.email,
+					c.phone,
+					t.titles,
+					g.gender_values,
+					GROUP_CONCAT(h.hobby_name) AS hobbies
+					
+				FROM 
+					contacts c
+				LEFT JOIN 
+					title t ON c.titleId=t.id
+				LEFT JOIN
+					gender g ON c.genderId=g.id
+				LEFT JOIN
+					contact_hobbies ch ON c.id=ch.contact_id
+				LEFT JOIN 
+					hobbies h ON ch.hobby_id=h.id
+				GROUP BY
+					c.id
+			</cfquery>		
+			<cfreturn local.totalData>			
+		<cfcatch>
+			<cfdump var="#cfcatch#">
+		</cfcatch>
+		</cftry>
+	</cffunction>
 </cfcomponent>
 
 
