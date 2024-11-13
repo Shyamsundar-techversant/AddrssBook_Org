@@ -56,7 +56,7 @@ $(document).ready(function(){
 		formData.append('pincode', contPincode.val());
 		formData.append('hobbies',contHobby.val());
 		$.ajax({
-			url:'Components/main.cfc?method=validateContactForm',
+			url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',
 			type:'POST',
 			data:formData,
 			processData:false,
@@ -146,8 +146,8 @@ $(document).ready(function(){
 				console.log(data);
 				const contactData=data.DATA[0];
 
-				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_NAME")]);
-
+				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_ID")]);
+				console.log(hobbies);
 				contTitle.val(contactData[data.COLUMNS.indexOf("TITLEID")]);
 				contFirstname.val(contactData[data.COLUMNS.indexOf("FIRSTNAME")]);
 				contLastname.val(contactData[data.COLUMNS.indexOf("LASTNAME")]);
@@ -159,7 +159,7 @@ $(document).ready(function(){
 				contPincode.val(contactData[data.COLUMNS.indexOf("PINCODE")]);
 				contStreet.val(contactData[data.COLUMNS.indexOf("STREET")]);
 				contImg.attr("src", contactData[data.COLUMNS.indexOf("IMAGEPATH")]);			
-				contHobby.val(hobbies);	
+				contHobby.val(hobbies[0].split(","));	
 			},
 			error:function(){
 				console.log("Request Failed");
@@ -213,7 +213,7 @@ $(document).ready(function(){
 		
 		console.log(formData);
 		$.ajax({
-			url:'Components/main.cfc?method=validateContactForm',
+			url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',
 			type:'POST',
 			data:formData,
 			processData:false,

@@ -96,8 +96,7 @@
 	<cffunction name="logUser" access="public" returntype="string">
 		<cfargument name="userName" type="string" required="true">
 		<cfargument name="password" type="string" required="true">
-		<cfset local.hashedPassword=hash(#arguments.password#,"SHA-512")>
-		<cfset local.result="">
+		<cfset local.hashedPassword = hash(#arguments.password#,"SHA-512")>
 		<cftry>
 			<cfquery name="local.userLog" datasource="coldfusion">
 				SELECT 
@@ -108,14 +107,15 @@
 				WHERE 
 					userName=<cfqueryparam value="#arguments.userName#" cfsqltype="cf_sql_varchar">
 				AND
-					password=<cfqueryparam value="#local.hashedPassword#" cfsqltype="cf_sql_varchar">
-								
+					password=<cfqueryparam value="#local.hashedPassword#" cfsqltype="cf_sql_varchar">					
 			</cfquery>
 			<cfif local.userLog.recordCount EQ 1>
-				<cfset result="LogIn successful">
+				<cfset local.result="LogIn successful">
 				<cfset session.username=arguments.username>
 				<cfset session.userId=local.userLog.userId>
 				<cflocation url="home.cfm" addtoken="false">
+			<cfelse>
+				<cfset local.result="Invalid username or password">				
 			</cfif>
 			<cfreturn local.result>
 		<cfcatch>
@@ -190,13 +190,13 @@
 
 
 	<!--- VALIDATE CONTACT FORM--->
-	<cffunction name="validateContactForm" access="remote" returntype="any" returnformat="JSON">
+	<cffunction name="validateFormAndCreateOrUpdateUser" access="remote" returntype="any" returnformat="JSON">
 		<cfargument name="title" type="string" required="true">
 		<cfargument name="firstname" type="string" required="true">
 		<cfargument name="lastname" type="string" required="true">
 		<cfargument name="gender" type="string" required="true">
 		<cfargument name="dob" type="string" required="true">
-		<cfargument name="file" type="any" required="true">
+		<cfargument name="file" type="any" required="false">
 		<cfargument name="email" type="string" required="true">
 		<cfargument name="phone" type="string" required="true">
 		<cfargument name="address" type="string" required="true">
@@ -205,7 +205,6 @@
 		<cfargument name="hobbies" type="string" required="true">
 		<cfargument name="id" type="string" required="false">
 		<cfset local.errors=[]>	
-
 		<!--- Title --->
 		<cfset local.titleArr=[]>	
 		<cfset local.titleValues=getTitle()>
@@ -250,7 +249,7 @@
 		<!--- VALIDATE IMAGE --->		
 		<cfset local.maxSize=5*1024*1024>
 		<cfset local.allowedExtensions = "jpeg,jpg,png,gif">
-		<cfif len(trim(file)) EQ 0>
+		<cfif len(trim(arguments.file)) EQ 0>
 			<cfset arrayAppend(local.errors,"* Photo is required")>
 		<cfelse>
 			<cfset local.uploadDir=expandPath('./Uploads/')>
@@ -324,41 +323,12 @@
 		</cfif>
 		<!--- ADD EDIT FUNCTION CALL --->
 		<cfif arrayLen(local.errors) EQ 0>
-			<cfif NOT structKeyExists(arguments,"id")>
-				<cfset local.addCont=addEditContact(
-							arguments.title,
-							arguments.firstname,
-							arguments.lastname,
-							arguments.gender,
-							arguments.dob,
-							local.imagePath,
-							arguments.email,
-							arguments.phone,
-							arguments.address,
-							arguments.street,
-							arguments.pincode,
-							arguments.hobbies							
+			<cfset userData=addEditContact(
+							argumentCollection=arguments,
+							uploadImg=local.imagePath			
 						)
-				>
-			<cfelse>
-				<cfset local.editCont=addEditContact(
-							arguments.title,
-							arguments.firstname,
-							arguments.lastname,
-							arguments.gender,
-							arguments.dob,
-							local.imagePath,
-							arguments.email,
-							arguments.phone,
-							arguments.address,
-							arguments.street,
-							arguments.pincode,
-							arguments.hobbies,
-							arguments.id							
-							)
-				>	
-			</cfif>
-				<cfreturn local.errors>
+			>
+			<cfreturn local.errors>
 		<cfelse>	
 			<cfreturn local.errors>
 		</cfif>
@@ -600,16 +570,17 @@
 					c.phone,
 					t.titles,
 					g.gender_values,
-					h.hobby_name
+					GROUP_CONCAT(h.hobby_name) AS hobby_name, 
+					GROUP_CONCAT(h.id) AS hobby_Id
 				FROM 
 					contacts c
-				LEFT JOIN 
+				INNER JOIN 
 					title t ON c.titleId=t.id
-				LEFT JOIN
+				INNER JOIN
 					gender g ON c.genderId=g.id
-				LEFT JOIN
+				INNER JOIN
 					contact_hobbies ch ON c.id=ch.contact_id
-				LEFT JOIN 
+				INNER JOIN 
 					hobbies h ON ch.hobby_id=h.id
 				WHERE 
 					c.id=<cfqueryparam value=#decryptedId#  cfsqltype="cf_sql_integer">				
@@ -619,7 +590,7 @@
 		<cfcatch>
 			<cfdump var="#cfcatch#">
 		</cfcatch>
-	</cftry>	
+		</cftry>	
 
 	</cffunction>
 
@@ -642,17 +613,16 @@
 					c.phone,
 					t.titles,
 					g.gender_values,
-					GROUP_CONCAT(h.hobby_name) AS hobbies
-					
+					GROUP_CONCAT(h.hobby_name) AS hobbies					
 				FROM 
 					contacts c
-				LEFT JOIN 
+				INNER JOIN 
 					title t ON c.titleId=t.id
-				LEFT JOIN
+				INNER JOIN
 					gender g ON c.genderId=g.id
-				LEFT JOIN
+				INNER JOIN
 					contact_hobbies ch ON c.id=ch.contact_id
-				LEFT JOIN 
+				INNER JOIN 
 					hobbies h ON ch.hobby_id=h.id
 				GROUP BY
 					c.id

@@ -2,7 +2,9 @@
 	<cfset StructDelete(session,"username")>
 	<cfset StructDelete(session,"userId")>
 </cfif>
-
+<cfif structKeyExists(form,"submit")>
+	<cfset variables.logResult=application.dbObj.logUser(form.userName,form.password)>
+</cfif>
 
 <!DOCTYPE html>
 <html>
@@ -58,6 +60,11 @@
 										<div class="user-inputs ">
 											<button type="submit" class="sign" id="logIn" name="submit">LogIn</button>
 										</div>
+										<div class="error ps-3">
+											<cfif structKeyExists(variables,"logResult")>
+												<cfoutput>#variables.logResult#</cfoutput>
+											</cfif>
+										</div>
 									</form>
 								</div>
 							</div>
@@ -66,12 +73,6 @@
 				</div>
 			</section>
 		</section>
-
-		<cfif structKeyExists(form,"submit")>
-			<cfset logResult=application.dbObj.logUser(form.userName,form.password)>
-		</cfif>
-
-	
 	</body>
 </html>
 
