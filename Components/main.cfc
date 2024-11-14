@@ -190,13 +190,13 @@
 
 
 	<!--- VALIDATE CONTACT FORM--->
-	<cffunction name="validateFormAndCreateOrUpdateUser" access="remote" returntype="any" returnformat="JSON">
+	<cffunction name="validateFormAndCreateOrUpdateUser" access="remote" returntype="array" returnformat="JSON">
 		<cfargument name="title" type="string" required="true">
 		<cfargument name="firstname" type="string" required="true">
 		<cfargument name="lastname" type="string" required="true">
 		<cfargument name="gender" type="string" required="true">
 		<cfargument name="dob" type="string" required="true">
-		<cfargument name="file" type="any" required="false">
+		<cfargument name="file" type="string" required="false">
 		<cfargument name="email" type="string" required="true">
 		<cfargument name="phone" type="string" required="true">
 		<cfargument name="address" type="string" required="true">
@@ -249,21 +249,26 @@
 		<!--- VALIDATE IMAGE --->		
 		<cfset local.maxSize=5*1024*1024>
 		<cfset local.allowedExtensions = "jpeg,jpg,png,gif">
-		<cfif len(trim(arguments.file)) EQ 0>
+		<cfset local.uploadedImage=structNew()>
+
+		<cfif NOT structKeyExists(form,"file")>
 			<cfset arrayAppend(local.errors,"* Photo is required")>
 		<cfelse>
 			<cfset local.uploadDir=expandPath('./Uploads/')>
+
 			<cfif NOT directoryExists(local.uploadDir)>
 				<cfdirectory action="create" directory="#local.uploadDir#">
 			</cfif>
-			<cfif structKeyExists(arguments,"file")>
+
+			<cfif structKeyExists(form,"file") AND len(trim(form.file))>
 				<cffile action="upload"
 					fileField="file"
 					destination="#application.imageSavePath#"
 					nameconflict="makeunique"
 					result="local.uploadedImage"
-				>
+				> 
 			</cfif>
+
 			<cfif local.uploadedImage.FILESIZE GT maxSize>
 				<cfset arrayAppend(local.errors,"*Image size should be less than 5 MB")>
 			</cfif>	
@@ -271,10 +276,10 @@
 			<cfif NOT ListFindNoCase(local.allowedExtensions,"#local.uploadedImage.CLIENTFILEEXT#")>
 				<cfset arrayAppend(local.errors,"*Image should be jpeg,png or gif format")>
 			</cfif>
+
 			<cfset local.imagePath=local.uploadedImage.SERVERFILE>
 		</cfif>
-
-		<!---VALIDATE EMAIL ---> 
+		<!---VALIDATE EMAIL  ---> 
 		<cfif len(trim(arguments.email)) EQ 0>
 			<cfset arrayAppend(local.errors,"*Email is required")>
 		<cfelseif NOT reFindNoCase("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",arguments.email)>
@@ -305,21 +310,27 @@
 			<cfset arrayAppend(local.errors,"*Enter a valid pincode")>
 		</cfif> 
 		<!--- VALIDATE HOBBIES --->
-		<cfset local.hobbyArr=[]>
-		<cfset local.hobbyValues=getHobbies()>
-		<cfloop query="local.hobbyValues">
-			<cfset arrayAppend(local.hobbyArr,local.hobbyValues.id)>
-		</cfloop>
-		<cfset hobbyToValidate=ListToArray(arguments.hobbies,",")>
-		<cfset local.hobbyFalse=0>
-		<cfloop array="#local.hobbyArr#" index="value">
-			<cfif NOT ArrayContains(local.hobbyArr,value)>
-				<cfset local.hobbyFalse=1>
-				<cfbreak>
+
+		<cfif Len(arguments.hobbies) EQ 0>
+			<cfset arrayAppend(local.errors,"*Hobbies required")>
+		<cfelse>
+			<cfset local.hobbyArr=[]>
+			<cfset local.hobbyValues=getHobbies()>
+			<cfloop query="local.hobbyValues">
+				<cfset arrayAppend(local.hobbyArr,local.hobbyValues.id)>
+			</cfloop>
+			<cfset local.hobbyToValidate=ListToArray(arguments.hobbies,",")>
+			<cfset local.hobbyFalse=0>
+			<cfloop array="#local.hobbyToValidate#" index="value">
+				<cfif NOT ArrayContains(local.hobbyArr,value)>
+					<cfset local.hobbyFalse=1>
+					<cfbreak>
+				</cfif>
+			</cfloop>
+			<cfif hobbyFalse EQ 1>
+				<cfset arrayAppend(local.errors,"*Enter a valid hobby")>
 			</cfif>
-		</cfloop>
-		<cfif hobbyFalse EQ 1>
-			<cfset arrayAppend(local.errors,"*Enter a valid hobby")>
+			
 		</cfif>
 		<!--- ADD EDIT FUNCTION CALL --->
 		<cfif arrayLen(local.errors) EQ 0>
@@ -478,46 +489,6 @@
 			<cfreturn local.allContacts>
 	</cffunction>
 
-	<!--- GET CONTACT BY ID 
-	<cffunction name="getContactById" access="remote" returntype="any" returnformat="JSON">
-		<cfargument name="id" type="string" required="true">
-		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
-		<cftry>
-			<cfquery name="local.getCont" datasource="coldfusion">
-				SELECT 
-					c.id,
-					c.userId,
-					c.titleId,
-					c.firstName,
-					c.lastName,
-                        		c.genderId,
-                        		c.dob,
-                        		c.imagePath,
-                        		c.address,
-					c.street,
-					c.pincode,
-					c.email,
-					c.phone,
-					t.titles,
-					g.gender_values
-				FROM 
-					contacts c
-				LEFT JOIN 
-					title t ON c.titleId=t.id
-				LEFT JOIN
-					gender g ON c.genderId=g.id
-				WHERE 
-					c.id=<cfqueryparam value=#local.decryptedId# cfsqltype="cf_sql_integer">				
-			</cfquery>
-			<cfset local.response=#serializeJSON(local.getCont)#>
-			<cfreturn local.response>
-		<cfcatch>
-			<cfset local.errResponse ={error=true}>
-			<cfdump var="#cfcatch#">			
-		</cfcatch>
-		</cftry>
-	</cffunction>--->
-
 	<!--- DELETE CONTACT --->
 
 	<cffunction name="deleteCont" access="remote" returnformat="JSON">
@@ -624,6 +595,8 @@
 					contact_hobbies ch ON c.id=ch.contact_id
 				INNER JOIN 
 					hobbies h ON ch.hobby_id=h.id
+				WHERE
+					userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">
 				GROUP BY
 					c.id
 			</cfquery>		

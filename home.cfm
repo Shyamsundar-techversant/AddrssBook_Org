@@ -1,4 +1,5 @@
-<cfset variables.getContacts=application.dbObj.getContacts()>
+<cfset variables.getContacts=application.dbObj.getTotalData()>
+<cfdump var="#variables.getContacts#">
 <cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
 <html>

@@ -157,83 +157,68 @@ $(document).ready(function(){
 				contPhone.val(contactData[data.COLUMNS.indexOf("PHONE")]);
 				contAddress.val(contactData[data.COLUMNS.indexOf("ADDRESS")]);
 				contPincode.val(contactData[data.COLUMNS.indexOf("PINCODE")]);
-				contStreet.val(contactData[data.COLUMNS.indexOf("STREET")]);
-				contImg.attr("src", contactData[data.COLUMNS.indexOf("IMAGEPATH")]);			
+				contStreet.val(contactData[data.COLUMNS.indexOf("STREET")]);			
 				contHobby.val(hobbies[0].split(","));	
 			},
 			error:function(){
 				console.log("Request Failed");
 			}
 		});
-		/* $.ajax({
-			url:'Components/main.cfc?method=getContactById',
-			type:'POST',
-			data:{
-				id:contactId
-			},
-			success:function(response){
-				const data=JSON.parse(response);
-				const dataRow = data.DATA[0];
-				console.log(data);	
-				contTitle.val(dataRow[2]);
-				contFirstname.val(dataRow[3]);
-				contLastname.val(dataRow[4]);
-				contGender.val(dataRow[1]);
-				contDob.val(dataRow[6]);
-				contEmail.val(dataRow[11]);
-				contPhone.val(dataRow[12]);
-				contAddress.val(dataRow[8]);
-				contPincode.val(dataRow[10]);
-				contStreet.val(dataRow[9]);	
-			},
-			error:function(){
-				console.log("Request Failed");
-			}
-		}); */
+
 	});
 
 	$('#edit-cont').on('click',function(event){	
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
-		let formData = new FormData();
-		formData.append('title', contTitle.val());
-		formData.append('firstname', contFirstname.val());
-		formData.append('lastname', contLastname.val());
-		formData.append('gender', contGender.val());
-		formData.append('dob', contDob.val());
-		formData.append('file', file);
-		formData.append('email', contEmail.val());
-		formData.append('phone', contPhone.val());
-		formData.append('address', contAddress.val());
-		formData.append('street', contStreet.val());
-		formData.append('pincode', contPincode.val());
-		formData.append('hobbies',contHobby.val());
-		formData.append('id',contactId);
+
+		if(file){
+			let formData = new FormData();
+			formData.append('title', contTitle.val());
+			formData.append('firstname', contFirstname.val());
+			formData.append('lastname', contLastname.val());
+			formData.append('gender', contGender.val());
+			formData.append('dob', contDob.val());
+			formData.append('file', file);
+			formData.append('email', contEmail.val());
+			formData.append('phone', contPhone.val());
+			formData.append('address', contAddress.val());
+			formData.append('street', contStreet.val());
+			formData.append('pincode', contPincode.val());
+			formData.append('hobbies',contHobby.val());
+			formData.append('id',contactId);
 		
-		console.log(formData);
-		$.ajax({
-			url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',
-			type:'POST',
-			data:formData,
-			processData:false,
-			contentType:false,
-			success:function(response){
-				let data = JSON.parse(response);
-				console.log(data);	
-				if(data.length === 0){
-					$('#contacts-form').closest('.modal').modal('hide');
-					location.reload();
+			console.log(formData);
+			$.ajax({
+				url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',
+				type:'POST',
+				data:formData,
+				processData:false,
+				contentType:false,
+				success:function(response){
+					let data = JSON.parse(response);
+					console.log(data);	
+					if(data.length === 0){
+						$('#contacts-form').closest('.modal').modal('hide');
+						location.reload();
+					}
+					else{
+						addError(data);
+					}
+					
+				},
+				error:function(){
+					console.log("Request Failed");
 				}
-				else{
-					addError(data);
-				}
-				
-			},
-			error:function(){
-				console.log("Request Failed");
-			}
-		});
+			});
+		}
+		else{
+			const errorList = document.getElementById("error-data");
+			errorList.innerHTML="";
+			let li= document.createElement('li');
+			li.textContent="Photo is required";
+			errorList.appendChild(li);
+		}
 
 	});
 
