@@ -16,6 +16,7 @@ $(document).ready(function(){
 		contStreet=$('#street'),
 		contHobby=$('#hobby');
 		
+	let publicContact=document.getElementById('publicUser');
 	
 
 
@@ -41,7 +42,8 @@ $(document).ready(function(){
 		event.preventDefault();
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
-		
+		let publicData=publicContact.checked? 1:0 ; 
+
 		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
@@ -55,6 +57,8 @@ $(document).ready(function(){
 		formData.append('street', contStreet.val());
 		formData.append('pincode', contPincode.val());
 		formData.append('hobbies',contHobby.val());
+		formData.append('public',publicData);
+		
 		$.ajax({
 			url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',
 			type:'POST',
@@ -146,8 +150,14 @@ $(document).ready(function(){
 				console.log(data);
 				const contactData=data.DATA[0];
 
+				let public = contactData[data.COLUMNS.indexOf("PUBLIC")];
+				if(public){
+					publicContact.checked=true;
+				}
+				else{
+					publicContact.checked=false;
+				}
 				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_ID")]);
-				console.log(hobbies);
 				contTitle.val(contactData[data.COLUMNS.indexOf("TITLEID")]);
 				contFirstname.val(contactData[data.COLUMNS.indexOf("FIRSTNAME")]);
 				contLastname.val(contactData[data.COLUMNS.indexOf("LASTNAME")]);
@@ -174,6 +184,7 @@ $(document).ready(function(){
 
 		if(file){
 			let formData = new FormData();
+			let publicData=publicContact.checked? 1:0 ;
 			formData.append('title', contTitle.val());
 			formData.append('firstname', contFirstname.val());
 			formData.append('lastname', contLastname.val());
@@ -187,7 +198,7 @@ $(document).ready(function(){
 			formData.append('pincode', contPincode.val());
 			formData.append('hobbies',contHobby.val());
 			formData.append('id',contactId);
-		
+			formData.append('public',publicData);
 			console.log(formData);
 			$.ajax({
 				url:'Components/main.cfc?method=validateFormAndCreateOrUpdateUser',

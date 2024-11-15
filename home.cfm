@@ -1,5 +1,4 @@
 <cfset variables.getContacts=application.dbObj.getTotalData()>
-<cfdump var="#variables.getContacts#">
 <cfset session.allContacts=variables.getContacts>
 <!DOCTYPE html>
 <html>
@@ -70,6 +69,7 @@
 								<tbody>
 									<cfif structKeyExists(variables,"getContacts")>
 										<cfoutput>
+												
 											<cfloop query="getContacts">
 												<cfset encryptedId = encrypt(
 																	getContacts.id, 																		application.encryptionKey, 																	"AES", 
@@ -95,26 +95,29 @@
 															VIEW
 														</button>
 													</td>
-													<td class="no-print">
+													<cfif session.userId EQ getContacts.userId>
+														<td class="no-print">
 														
-															<button class="edit-cont-details"
+																<button class="edit-cont-details"
+																	data-bs-toggle="modal"
+																	data-bs-target=
+																	"##staticBackdrop"
+																	data-id="#encryptedId#"
+																>
+																	EDIT
+																</button>
+														
+														</td>
+														<td class="no-print">
+															<button class="delete-contact-details"
 																data-bs-toggle="modal"
-																data-bs-target="##staticBackdrop"
+																data-bs-target="##deleteContact"
 																data-id="#encryptedId#"
 															>
-																EDIT
+																Delete
 															</button>
-														
-													</td>
-													<td class="no-print">
-														<button class="delete-contact-details"
-															data-bs-toggle="modal"
-															data-bs-target="##deleteContact"
-															data-id="#encryptedId#"
-														>
-															Delete
-														</button>
-													</td>
+														</td>
+													</cfif>
 												</tr>
 											</cfloop>
 										</cfoutput>
@@ -122,8 +125,7 @@
 								</tbody>
 							</table>
 						</div>
-					</div>
-				
+					</div>				
 			</div>
 		</section>
 
@@ -234,6 +236,16 @@
 												</select>
 											</div>
 										</div>
+										<div class="row mb-3">
+											<div class="col">
+												<div class="form-check">
+													<input class="form-check-input" type="checkbox" 														id="publicUser">
+													<label class="form-check-label" for="publicUser">
+														Public
+													</label>
+												</div>
+											</div>
+										</div>
 										<div class="row">
 											<div class="col">
 												<div class="user-form-buttons">
@@ -261,9 +273,9 @@
 		</div>
 		
 		<!--- Modal view --->
-		<div	class="modal" 
-			id="viewContact" 
-		>
+		<div class="modal" id="viewContact" >
+			
+		
 			<div class="modal-dialog view-contact">
 				<div class="modal-content">
 					<div class="modal-header">

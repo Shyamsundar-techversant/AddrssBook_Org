@@ -204,6 +204,7 @@
 		<cfargument name="pincode" type="string" required="true">	
 		<cfargument name="hobbies" type="string" required="true">
 		<cfargument name="id" type="string" required="false">
+		<cfargument name="public" type="numeric" required="true">
 		<cfset local.errors=[]>	
 		<!--- Title --->
 		<cfset local.titleArr=[]>	
@@ -359,7 +360,8 @@
 		<cfargument name="street" type="string" required="true">
 		<cfargument name="pincode" type="string" required="true">
 		<cfargument name="hobbies" type="string" required="true">
-		<cfargument name="id" type="string" required="false">	
+		<cfargument name="id" type="string" required="false">
+		<cfargument name="public" type="numeric" required="true">	
 		<cfset local.pincode = int(arguments.pincode)>
 		<cfset local.phone = int(arguments.phone)>
 		<cftry>
@@ -378,7 +380,8 @@
 							street,
 							pincode,
 							email,
-							phone
+							phone,
+							public
 						)
 					VALUES(
 						<cfqueryparam value= #session.userId#  cfsqltype="cf_sql_integer">,
@@ -392,7 +395,8 @@
 						<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
 						<cfqueryparam value="#local.pincode#" cfsqltype="cf_sql_integer">,
 						<cfqueryparam value="#arguments.email#" cfsqltype="cf_sql_varchar">,
-						<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">
+						<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">,
+						<cfqueryparam value="#arguments.public#" cfsqltype="cf_sql_integer">
 					)
 				</cfquery>
 				<cfset local.newId= local.contactAdd.GENERATEDKEY>
@@ -411,7 +415,9 @@
 				</cfloop>
 			<cfelse>	
 				<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
-				<cfset local.hobbyArr=ListToArray(arguments.hobbies,",")>	
+				<cfset local.hobbyArr=ListToArray(arguments.hobbies,",")>
+		
+				<!--- UPDATE CONTACTS --->	
 				<cfquery name="local.editCont" datasource="coldfusion">
 					UPDATE contacts
 					SET 
@@ -426,28 +432,67 @@
 						street=<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
 						pincode=<cfqueryparam value="#local.pincode#" cfsqltype="cf_sql_integer">,
 						email=<cfqueryparam value="#arguments.email#" cfsqltype="cf_sql_varchar">,
-						phone=<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">
+						phone=<cfqueryparam value="#local.phone#" cfsqltype="cf_sql_bigint">,
+						public=<cfqueryparam value="#arguments.public#" cfsqltype="cf_sql_integer">
 					WHERE
 						id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">
+					AND
+						userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">
 				</cfquery>
-				<cfquery datasource="coldfusion">
-					DELETE 
-					FROM contact_hobbies
+				
+				<!---UPDATE CONTACT_HOBBIES--->
+				<cfquery datasource="coldfusion" name="local.existingHobbies">
+					SELECT
+						hobby_id
+					FROM 
+						contact_hobbies
 					WHERE 
-						contact_id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">				
+						contact_id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">
 				</cfquery>
-				<cfloop array="#local.hobbyArr#" index="hobby_id">
-					<cfquery datasource="coldfusion" result="local.contactHobbies">
-						INSERT INTO contact_hobbies(
+				<cfset local.existingHobbiesArray=[]>
+				<cfloop query="local.existingHobbies">
+					<cfset arrayAppend(local.existingHobbiesArray,local.existingHobbies.hobby_id)>
+				</cfloop>
+				
+				<cfset local.newHobbies=arguments.hobbies>
+				<cfset local.newHobbiesArray=ListToArray(local.newHobbies,",")>
+				<cfset local.newHobbiesToInsert = []>
+				<cfset local.hobbiesToDelete=[]>
+				<cfloop array="#local.newHobbiesArray#" index="id">
+					<cfif NOT ArrayFind(local.existingHobbiesArray,id)>
+						<cfset arrayAppend(local.newHobbiesToInsert,id)>
+					</cfif>
+				</cfloop>
+				<cfloop array="#local.existingHobbiesArray#" index="id">
+					<cfif NOT ArrayFind(local.newHobbiesArray,id)>
+						<cfset arrayAppend(local.hobbiesToDelete,id)>
+					</cfif>
+				</cfloop>
+
+				<cfloop array="#local.hobbiesToDelete#" index="id">
+					<cfquery datasource="coldfusion" result="local.deleteContactHobbies">
+						DELETE 
+						FROM 
+							contact_hobbies
+						WHERE
+							hobby_id =<cfqueryparam value="#id#" cfsqltype="cf_sql_integer">
+					</cfquery> 
+				</cfloop>
+			
+				<cfloop array="#local.newHobbiesToInsert#" index="id">
+					<cfquery datasource="coldfusion" name="local.addNewHobbies">
+						INSERT INTO
+							contact_hobbies(
 										contact_id,
 										hobby_id
 									)
 						VALUES(
 							<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">,
-							<cfqueryparam value="#hobby_id#" cfsqltype="cf_sql_integer">
+							<cfqueryparam value="#id#" cfsqltype="cf_sql_integer">						
 						)
+							
 					</cfquery>
-				</cfloop>
+				</cfloop> 
 			</cfif>
  		<cfcatch>
 			<cfdump var="#cfcatch#">
@@ -500,7 +545,9 @@
 				DELETE	FROM 
 					contacts
 				WHERE
-					id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">			
+					id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">	
+				AND
+					userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">		
 			</cfquery>
 			<cfif delResult.recordCount GT 0>
 				<cfset local.result="Success">			
@@ -512,12 +559,6 @@
 			<cfoutput>#cfcath.message#</cfoutput>
 		</cfcatch>
 		</cftry>
-	</cffunction>
-
-	<cffunction name="imgAdd" access="remote" returntype="any">
-		<cfargument type="any" name="file" required="true">	
-		<cffile action="upload" fileField="file" destination="#application.imageSavePath#">
-		<cfdump var="#cffile#">
 	</cffunction>
 
 	<cffunction name="getDataById" access="remote" returntype="any" returnformat="JSON">	
@@ -539,6 +580,7 @@
 					c.pincode,
 					c.email,
 					c.phone,
+					c.public,
 					t.titles,
 					g.gender_values,
 					GROUP_CONCAT(h.hobby_name) AS hobby_name, 
@@ -554,7 +596,7 @@
 				INNER JOIN 
 					hobbies h ON ch.hobby_id=h.id
 				WHERE 
-					c.id=<cfqueryparam value=#decryptedId#  cfsqltype="cf_sql_integer">				
+					c.id=<cfqueryparam value="#decryptedId#"  cfsqltype="cf_sql_integer">				
 			</cfquery>
 			<cfset local.response=#serializeJSON(local.getCont)#>
 			<cfreturn local.response>
@@ -582,6 +624,7 @@
 					c.pincode,
 					c.email,
 					c.phone,
+					c.public,
 					t.titles,
 					g.gender_values,
 					GROUP_CONCAT(h.hobby_name) AS hobbies					
@@ -597,6 +640,8 @@
 					hobbies h ON ch.hobby_id=h.id
 				WHERE
 					userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">
+				OR 
+					public=<cfqueryparam value="1" cfsqltype="cf_sql_integer">
 				GROUP BY
 					c.id
 			</cfquery>		
