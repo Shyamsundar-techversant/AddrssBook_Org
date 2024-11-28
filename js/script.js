@@ -43,7 +43,6 @@ $(document).ready(function(){
 		var fileInput = $('#upload-img')[0];
 		var file=fileInput.files[0];
 		let publicData=publicContact.checked? 1:0 ; 
-
 		let formData = new FormData();
 		formData.append('title', contTitle.val());
 		formData.append('firstname', contFirstname.val());
@@ -111,19 +110,19 @@ $(document).ready(function(){
 			},
 			success:function(response){
 				const data=JSON.parse(response);
-				console.log(data);
-				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_NAME")]);
-				console.log(hobbies);
-				const dataRow = data.DATA[0];
-				$('#profile-picture').attr('src',`./Uploads/${dataRow[7]}`);
-				fullName.text(`${dataRow[13]}${dataRow[3]}${dataRow[4]}`);
-				gender.text(`${dataRow[14]}`);
-				dob.text(`${dataRow[6]}`);
-				address.text(`${dataRow[8]}`);
-				pincode.text(`${dataRow[10]}`);
-				email.text(`${dataRow[11]}`);
-				phone.text(`${dataRow[12]}`);	
-				$('#user-hobbies').text(hobbies.join(","));	
+				const hobbies=	data.hobby_name.split(",");
+				let date = new Date(data.dob);
+				let formattedDate = date.toISOString().split('T')[0];
+				$('#profile-picture').attr('src',`./Uploads/${data.imagePath}`);
+
+				fullName.text(`${data.titles} ${data.firstName}${data.lastName}`);
+				gender.text(`${data.gender_values}`);
+				dob.text(formattedDate);
+				address.text(`${data.address}`);
+				pincode.text(`${data.pincode}`);
+				email.text(`${data.email}`);
+				phone.text(`${data.phone}`);	
+				$('#user-hobbies').text(hobbies); 	
 			},
 			error:function(){
 				console.log("Request Failed");
@@ -147,28 +146,27 @@ $(document).ready(function(){
 			},
 			success:function(response){
 				const data= JSON.parse(response);
-				console.log(data);
-				const contactData=data.DATA[0];
-
-				let public = contactData[data.COLUMNS.indexOf("PUBLIC")];
+				let public = data.public;
 				if(public){
 					publicContact.checked=true;
 				}
 				else{
 					publicContact.checked=false;
 				}
-				const hobbies=	data.DATA.map(row=>row[data.COLUMNS.indexOf("HOBBY_ID")]);
-				contTitle.val(contactData[data.COLUMNS.indexOf("TITLEID")]);
-				contFirstname.val(contactData[data.COLUMNS.indexOf("FIRSTNAME")]);
-				contLastname.val(contactData[data.COLUMNS.indexOf("LASTNAME")]);
-				contGender.val(contactData[data.COLUMNS.indexOf("GENDERID")]);
-				contDob.val(contactData[data.COLUMNS.indexOf("DOB")]);
-				contEmail.val(contactData[data.COLUMNS.indexOf("EMAIL")]);
-				contPhone.val(contactData[data.COLUMNS.indexOf("PHONE")]);
-				contAddress.val(contactData[data.COLUMNS.indexOf("ADDRESS")]);
-				contPincode.val(contactData[data.COLUMNS.indexOf("PINCODE")]);
-				contStreet.val(contactData[data.COLUMNS.indexOf("STREET")]);			
-				contHobby.val(hobbies[0].split(","));	
+				const hobbies=	data.hobby_Id.split(",");
+				let date = new Date(data.dob);
+				let formattedDate = date.toISOString().split('T')[0];
+				contTitle.val(data.titleId);
+				contFirstname.val(data.firstName);
+				contLastname.val(data.lastName);
+				contGender.val(data.genderId);
+				contDob.val(formattedDate);
+				contEmail.val(data.email);
+				contPhone.val(data.phone);
+				contAddress.val(data.address);
+				contPincode.val(data.pincode);
+				contStreet.val(data.street);			
+				contHobby.val(hobbies);	
 			},
 			error:function(){
 				console.log("Request Failed");

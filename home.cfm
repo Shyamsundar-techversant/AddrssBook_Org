@@ -1,5 +1,5 @@
 <cfset variables.getContacts=application.dbObj.getTotalData()>
-<cfset session.allContacts=variables.getContacts>
+<!--- <cfset session.allContacts=variables.getContacts> --->
 <!DOCTYPE html>
 <html>
 	<head>
@@ -117,6 +117,24 @@
 																Delete
 															</button>
 														</td>
+													<cfelse>
+														<td class="no-print">
+														
+																<button class="edit-cont-details"
+																	disabled
+																>
+																	EDIT
+																</button>
+														
+														</td>
+														<td class="no-print">
+															<button class="delete-contact-details"
+																disabled
+															>
+																Delete
+															</button>
+														</td>
+
 													</cfif>
 												</tr>
 											</cfloop>

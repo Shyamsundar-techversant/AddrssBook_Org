@@ -2,21 +2,21 @@
 
 
 	 <cfset variables.validationResult =application.dbObj.validateForm(
-							form.fullName,
-							form.userEmail,
-							form.username,
-							form.password,
-							form.passwordConf
+							fullName=form.fullName,
+							userEmail=form.userEmail,
+							username=form.username,
+							password=form.password,
+							passwordConf=form.passwordConf
 						)
 	>
 
 
 	 <cfif arrayLen(validationResult) EQ 0>
 		<cfset variables.regUser=application.dbObj.registerUser(
-								form.fullName,
-								form.userEmail,
-								form.username,
-								form.password							
+								fullName=form.fullName,
+								emailId=form.userEmail,
+								userName=form.username,
+								password=form.password							
 							)
 		>
 	</cfif> 

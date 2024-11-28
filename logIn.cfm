@@ -3,7 +3,11 @@
 	<cfset StructDelete(session,"userId")>
 </cfif>
 <cfif structKeyExists(form,"submit")>
-	<cfset variables.logResult=application.dbObj.logUser(form.userName,form.password)>
+	<cfset variables.logResult=application.dbObj.logUser(
+								userName=form.userName,
+								password=form.password
+							)
+	>
 </cfif>
 
 <!DOCTYPE html>

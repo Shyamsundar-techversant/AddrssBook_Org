@@ -82,7 +82,7 @@
 							<cfqueryparam value="#local.hashedPassword#" cfsqltype="cf_sql_varchar">
 						)
 				</cfquery>
-				<cflocation url="logIn.cfm" addtoken="false">
+				<cflocation url="logIn.cfm" addtoken="false"> 
 			</cfif>
 			<cfreturn local.result>
 		<cfcatch>
@@ -111,8 +111,8 @@
 			</cfquery>
 			<cfif local.userLog.recordCount EQ 1>
 				<cfset local.result="LogIn successful">
-				<cfset session.username=arguments.username>
-				<cfset session.userId=local.userLog.userId>
+				<cfset session['username'] = arguments.username>
+				<cfset session['userId'] = local.userLog.userId>
 				<cflocation url="home.cfm" addtoken="false">
 			<cfelse>
 				<cfset local.result="Invalid username or password">				
@@ -195,7 +195,7 @@
 		<cfargument name="firstname" type="string" required="true">
 		<cfargument name="lastname" type="string" required="true">
 		<cfargument name="gender" type="string" required="true">
-		<cfargument name="dob" type="string" required="true">
+		<cfargument name="dob" type="date" required="true">
 		<cfargument name="file" type="string" required="false">
 		<cfargument name="email" type="string" required="true">
 		<cfargument name="phone" type="string" required="true">
@@ -333,11 +333,18 @@
 			</cfif>
 			
 		</cfif>
+		<!--- VALIDATE PUBLIC --->
+
+		<cfset local.publicArr=[1,0]>
+		<cfif NOT arrayContains(local.publicArr,arguments.public)>
+			<cfset arrayAppend(local.errors,"*Can'nt change the value of public")>
+		</cfif>
+
+		<cfset arguments['uploadImg'] = local.imagePath>
 		<!--- ADD EDIT FUNCTION CALL --->
 		<cfif arrayLen(local.errors) EQ 0>
 			<cfset userData=addEditContact(
-							argumentCollection=arguments,
-							uploadImg=local.imagePath			
+							argumentCollection=arguments									
 						)
 			>
 			<cfreturn local.errors>
@@ -347,12 +354,12 @@
 	</cffunction> 
 	
 	<!--- ADD EDIT CONTACT --->
-	<cffunction name="addEditContact" access="public" returntype="void">
+	<cffunction name="addEditContact" access="public" returntype="void" returnformat="JSON">
 		<cfargument name="title" type="string" required="true">
 		<cfargument name="firstname" type="string" required="true">
 		<cfargument name="lastname" type="string" required="true">
 		<cfargument name="gender" type="string" required="true">
-		<cfargument name="dob" type="string" required="true">
+		<cfargument name="dob" type="date" required="true">
 		<cfargument name="uploadImg" type="string" required="true">
 		<cfargument name="email" type="string" required="true">
 		<cfargument name="phone" type="string" required="true">
@@ -389,7 +396,7 @@
 						<cfqueryparam value="#arguments.firstname#" cfsqltype="cf_sql_varchar">,
 						<cfqueryparam value="#arguments.lastname#" cfsqltype="cf_sql_varchar">,
 						<cfqueryparam value="#arguments.gender#" cfsqltype="cf_sql_integer"> ,
-						<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_varchar">,
+						<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_date">,
 						<cfqueryparam value="#arguments.uploadImg#" cfsqltype="cf_sql_varchar">,
 						<cfqueryparam value="#arguments.address#" cfsqltype="cf_sql_varchar">,
 						<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
@@ -426,7 +433,7 @@
 						firstName=<cfqueryparam value="#arguments.firstname#" cfsqltype="cf_sql_varchar">,
 						lastName=<cfqueryparam value="#arguments.lastname#" cfsqltype="cf_sql_varchar">,
 						genderId=<cfqueryparam value="#arguments.gender#" cfsqltype="cf_sql_varchar">,
-						dob=<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_varchar">,
+						dob=<cfqueryparam value="#arguments.dob#" cfsqltype="cf_sql_date">,
 						imagePath=<cfqueryparam value="#arguments.uploadImg#" cfsqltype="cf_sql_varchar">,
 						address=<cfqueryparam value="#arguments.address#" cfsqltype="cf_sql_varchar">,
 						street=<cfqueryparam value="#arguments.street#" cfsqltype="cf_sql_varchar">,
@@ -440,7 +447,7 @@
 						userId=<cfqueryparam value="#session.userId#" cfsqltype="cf_sql_integer">
 				</cfquery>
 				
-				<!---UPDATE CONTACT_HOBBIES--->
+				<!---UPDATE CONTACT_HOBBIES --->
 				<cfquery datasource="coldfusion" name="local.existingHobbies">
 					SELECT
 						hobby_id
@@ -448,7 +455,7 @@
 						contact_hobbies
 					WHERE 
 						contact_id=<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">
-				</cfquery>
+				</cfquery> 
 				<cfset local.existingHobbiesArray=[]>
 				<cfloop query="local.existingHobbies">
 					<cfset arrayAppend(local.existingHobbiesArray,local.existingHobbies.hobby_id)>
@@ -457,81 +464,45 @@
 				<cfset local.newHobbies=arguments.hobbies>
 				<cfset local.newHobbiesArray=ListToArray(local.newHobbies,",")>
 				<cfset local.newHobbiesToInsert = []>
-				<cfset local.hobbiesToDelete=[]>
+				
 				<cfloop array="#local.newHobbiesArray#" index="id">
 					<cfif NOT ArrayFind(local.existingHobbiesArray,id)>
 						<cfset arrayAppend(local.newHobbiesToInsert,id)>
 					</cfif>
 				</cfloop>
-				<cfloop array="#local.existingHobbiesArray#" index="id">
-					<cfif NOT ArrayFind(local.newHobbiesArray,id)>
-						<cfset arrayAppend(local.hobbiesToDelete,id)>
-					</cfif>
-				</cfloop>
 
-				<cfloop array="#local.hobbiesToDelete#" index="id">
-					<cfquery datasource="coldfusion" result="local.deleteContactHobbies">
-						DELETE 
-						FROM 
-							contact_hobbies
-						WHERE
-							hobby_id =<cfqueryparam value="#id#" cfsqltype="cf_sql_integer">
-					</cfquery> 
-				</cfloop>
-			
-				<cfloop array="#local.newHobbiesToInsert#" index="id">
-					<cfquery datasource="coldfusion" name="local.addNewHobbies">
-						INSERT INTO
-							contact_hobbies(
-										contact_id,
-										hobby_id
-									)
-						VALUES(
-							<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">,
-							<cfqueryparam value="#id#" cfsqltype="cf_sql_integer">						
-						)
-							
-					</cfquery>
-				</cfloop> 
+				<cfquery datasource="coldfusion" result="local.deleteContactHobbies">
+					DELETE 
+					FROM 
+						contact_hobbies
+					WHERE						
+						hobby_id 
+					NOT IN(<cfqueryparam value="#arguments.hobbies#" cfsqltype="cf_sql_varchar" list="true">)
+						
+				</cfquery>			
+				<cfquery datasource="coldfusion" name="local.addNewHobbies">
+					INSERT INTO
+						contact_hobbies(
+									contact_id,
+									hobby_id
+								)
+					VALUES
+						<cfloop array="#local.newHobbiesToInsert#" index="local.i" item="local.hobby">
+							(
+								<cfqueryparam value="#local.decryptedId#" cfsqltype="cf_sql_integer">,
+								<cfqueryparam value="#local.hobby#" cfsqltype="cf_sql_integer">
+							)
+							<cfif local.i LT #arrayLen(local.newHobbiesToInsert)#>
+								,
+							</cfif>
+						</cfloop>;
+				</cfquery>
+				
 			</cfif>
  		<cfcatch>
 			<cfdump var="#cfcatch#">
 		</cfcatch>
 		</cftry>			
-	</cffunction>
-
-	<!--- GET ALL CONTACT --->
-	<cffunction name="getContacts" access="public" returntype="query">
-		<cftry>
-			<cfquery name="local.allContacts" datasource="coldfusion">
-				SELECT 
-					c.id,
-					c.userId,
-					c.titleId,
-					c.firstName,
-					c.lastName,
-                        		c.genderId,
-                        		c.dob,
-                        		c.imagePath,
-                        		c.address,
-					c.street,
-					c.pincode,
-					c.email,
-					c.phone,
-					t.titles,
-					g.gender_values
-				FROM 
-					contacts c
-				LEFT JOIN
-					title t ON c.titleId=t.id
-				LEFT JOIN 	
-					gender g ON c.genderId=g.id
-			</cfquery>
-		<cfcatch>
-			<cfdump var="#cfcatch#">
-		</cfcatch>
-		</cftry>
-			<cfreturn local.allContacts>
 	</cffunction>
 
 	<!--- DELETE CONTACT --->
@@ -561,6 +532,7 @@
 		</cftry>
 	</cffunction>
 
+	<!--- GET DATA BY ID --->
 	<cffunction name="getDataById" access="remote" returntype="any" returnformat="JSON">	
 		<cfargument name="id" type="string" required="true">
 		<cfset local.decryptedId=decrypt(arguments.id,application.encryptionKey,"AES","Hex")>
@@ -568,7 +540,6 @@
 			<cfquery name="local.getCont" datasource="coldfusion">
 				SELECT 
 					c.id,
-					c.userId,
 					c.titleId,
 					c.firstName,
 					c.lastName,
@@ -598,7 +569,29 @@
 				WHERE 
 					c.id=<cfqueryparam value="#decryptedId#"  cfsqltype="cf_sql_integer">				
 			</cfquery>
-			<cfset local.response=#serializeJSON(local.getCont)#>
+			<cfset local.idData = {
+						
+						'id'=local.getCont.id,
+						'titleId' = local.getCont.titleId,
+						'firstName' = local.getCont.firstName,
+						'lastName' = local.getCont.lastName,
+						'genderId' = local.getCont.genderId,
+						'dob' = local.getCont.dob,
+						'imagePath' = local.getCont.imagePath,
+						'address' = local.getCont.address,
+						'street' = local.getCont.street,
+						'pincode' = local.getCont.pincode,
+						'email' = local.getCont.email,
+						'phone' = local.getCont.phone,
+						'public' = local.getCont.public,
+						'titles' = local.getCont.titles,
+						'gender_values'= local.getCont.gender_values,
+						'hobby_name' = local.getCont.hobby_name,
+						'hobby_Id' = local.getCont.hobby_Id						
+	
+					}
+			>
+			<cfset local.response=#serializeJSON(local.idData)#>
 			<cfreturn local.response>
 		<cfcatch>
 			<cfdump var="#cfcatch#">
@@ -607,6 +600,7 @@
 
 	</cffunction>
 
+	<!--- GET ALL CONTACT --->
 	<cffunction name="getTotalData" access="public" returntype="any">
 		<cftry>
 			<cfquery name="local.totalData" datasource="coldfusion">
@@ -644,7 +638,7 @@
 					public=<cfqueryparam value="1" cfsqltype="cf_sql_integer">
 				GROUP BY
 					c.id
-			</cfquery>		
+			</cfquery>	
 			<cfreturn local.totalData>			
 		<cfcatch>
 			<cfdump var="#cfcatch#">
